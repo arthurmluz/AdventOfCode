@@ -2,7 +2,7 @@ chosen = []
 numeros = {}
 matrizes = []
 
-f = open("exinput.txt", "r")
+f = open("day4.txt", "r")
 
 matrizAtual = []
 linhaAtual = []
@@ -38,7 +38,7 @@ for line in f:
     matrizAtual.append(linhaAtual)
     linhaAtual = []
 
-bingo = False
+jafez = []
 for num in chosen:
     for i in range(len(numeros[num])):
         values = numeros[num][i]
@@ -49,29 +49,20 @@ for num in chosen:
 
         pontosLinha = sum(list(value.values())[0] for value in matrizes[z][x])
 
-#        if(pontosLinha == 5):
-#            bingo = True
-#            print("BINGOOO: ", matrizes[z][x])
 
         pontosColuna = 0 
         for lin in range(5):
             pontosColuna += list(matrizes[z][lin][y].values())[0]
         
         if pontosColuna == 5 or pontosLinha == 5:
-#            for value in matrizes[z]:
-#                print(value)
-#            for i in range(5):
-#                for j in range(5):
-#                    print(list(matrizes[z][i][j].values())[0])
-#                    if matrizes[z][i][j]:
+            if z in jafez:
+                continue
+            jafez.append(z)
 
-            soma = 0
-            for line in matrizes[z]:
-                for dic in line:
-                    valor = list(dic.values())[0]
-                    if valor == 0:
-                        soma += list(dic.keys())[0]
-            print("soma = ", soma, " num = ", num, " total = ", soma*num )
-            print("part 1 = ", sum(map(sum, ((value.values())[0] for value in matrizes[z]))))
-            print(matrizes)
-            exit()
+            if len(jafez) == len(matrizes) or len(jafez) == 1:
+                soma = 0
+                soma = sum(map(lambda line: sum(k for d in line for k, v in d.items() if v == 0), matrizes[z]))
+                print("soma = ", soma, " num = ", num, " total = ", soma*num )
+
+
+
