@@ -21,9 +21,8 @@ def imprime():
             if (i,j) in matrix:
                 print('#', end='')
             else:
-                print('.', end='')
+                print(' ', end='')
         print("")
-
 
 part1 = 0
 while(len(fold)):
@@ -47,4 +46,3 @@ while(len(fold)):
 
 print(part1)
 imprime()
-
