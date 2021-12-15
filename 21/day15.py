@@ -1,4 +1,5 @@
 import sys, copy
+from heapq import heappop, heappush
 from termcolor import colored
 
 f = open(sys.argv[1], 'r')
@@ -38,18 +39,19 @@ def retiraMin(lista, dist):
             menor = dist[i]
     return menorNodo
 
-# could do better with a priority queue
 def dijkstra(grafo):
     dist,prev = {}, {}
     lista = []
     for v in grafo:
         dist[v] = sys.maxsize
-        lista.append(v)
+#        lista.append(v)
+        heappush(lista, (dist[v], v))
 
     dist[(0,0)] = 0
     while(len(lista)):
-        u = retiraMin(lista, dist)
-        lista.remove(u)
+#        u = retiraMin(lista, dist)
+#        lista.remove(u)
+        u = heappop(lista)[1]
         for i in range(-1, 2):
             nodo = (u[0]+i, u[1]) 
             if nodo in grafo:
