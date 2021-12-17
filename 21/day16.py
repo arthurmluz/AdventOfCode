@@ -2,6 +2,7 @@ import sys
 f = sys.argv[1]
 
 binary = bin(int(f, 16))[2:].zfill(len(sys.argv[1])*4)
+print(binary)
 part1 = 0
 def recursive(packet):
     global part1
@@ -29,11 +30,13 @@ def recursive(packet):
         length += 1 if L == '1' else 0
         packet = packet[6+subpacketLen+1:]
         while length-1 > 0:
+            print(length)
+            print("estou enviando o pacote", packet)
             value, size, subpacket = recursive(packet)
             print('subpacket: ', value, size, subpacket)
             length -= size if L == '0' else 1 
             packet = subpacket
-            print(length)
+        return 0, size, subpacket
 
 print(recursive(binary))
 print(part1)
