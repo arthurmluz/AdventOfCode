@@ -3,6 +3,7 @@ targetY=(-10,-5)
 
 targetX=(34, 67)
 targetY=(-215,-186)
+rangeY=abs(targetY[0]) if abs(targetY[0]) > abs(targetY[1]) else abs(targetY[1])
 
 def moveProbe(x, y, speed):
     x += speed[0]
@@ -22,7 +23,7 @@ def moveProbe(x, y, speed):
 highestY = 0
 listTuplas = []
 for i in range(1, targetX[1]+1):
-    for j in range(-1000, 1000):
+    for j in range(-rangeY, rangeY):
         highY = 0
         speed = (i,j)
         x, y = 0, 0
