@@ -10,9 +10,9 @@ def trees(item):
         item['right'] = tree
         trees(tree)
 
-
 def findRightValueOnLeft(item, value):
     if isinstance( item['right'], int ):
+        print("achei o mais a direita", item['right'], " adicionando ", value)
         item['right'] += value
     else:
         findRightValueOnLeft(item['right'], value)
@@ -31,6 +31,7 @@ def findLeft(item, value, direction):
 
 def findLeftValueOnRight(item, value):
     if isinstance( item['left'], int ):
+        print("achei o mais a esquerda", item['left'], " adicionando ", value)
         item['left'] += value
     else:
         findLeftValueOnRight(item['left'], value)
@@ -82,6 +83,7 @@ def findFather(item):
 
 def reduces(item):
     if item['nivel'] == 4:
+        print("explodindo: ", item['left'], item['right'])
         if explodes(item):
             reduces(findFather(item))
 
@@ -99,17 +101,63 @@ def reduces(item):
         if splits(item, 'right'):
             reduces(item)
 
+
+def transformToList(res, tree):
+    if isinstance(tree['left'], dict):
+        res += "["
+        res = transformToList(res, tree['left'])
+        res += "],"
+    else:
+        res += str(tree['left'])+","
+    if isinstance(tree['right'], dict):
+        res += "["
+        res = transformToList(res, tree['right'])
+        res += "],"
+    else:
+        res += str(tree['right'])
+    return res 
+
+def testing(tree):
+    tree = { 'nivel': 0, 'left': res[0], 'right': res[1] }
+    trees(tree)
+    reduces(tree)
+    print(tree)
+    string = transformToList("[", tree) + ']'
+    # fixes the string
+    tmp = ""
+    for idx, char in enumerate(string): 
+        if string[idx] == ',' and string[idx+1] == ']':
+            continue
+        else:
+            tmp += char
+    print(tmp)
+    exit()
+
+
 f = open(sys.argv[1], 'r')
 
-listao = []
+lines = []
 for line in f:
     res =  json.loads(line[:-1])
-    print(res)
-    tree = { 'nivel': 0, 'left': res[0], 'right': res[1] }
-    listao.append(tree)
+#    testing(res)
+    lines.append(res)
+    if len(lines) % 2 == 0:
+        print(lines[0], "outra:" ,lines[1])
+        tree = { 'nivel': 0, 'left': lines[0], 'right': lines[1] }
+        trees(tree)
+#        print(tree)
+        reduces(tree)
+        # transforms the tree back in to a string list
+        string = transformToList("[", tree) + ']'
+        # fixes the string
+        tmp = ""
+        for idx, char in enumerate(string): 
+            if string[idx] == ',' and string[idx+1] == ']':
+                continue
+            else:
+                tmp += char
+        # makes it a list again
+        lines = [json.loads(tmp)]
 
-for item in listao:
-    trees(item)
+print(tmp)
 
-reduces(listao[0])
-print(listao[0]['right'])
