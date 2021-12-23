@@ -11,57 +11,51 @@ def trees(item):
         trees(tree)
 
 def findRightValueOnLeft(item, value):
-    if isinstance( item['right'], int ):
-        print("achei o mais a direita", item['right'], " adicionando ", value)
+    if isinstance(item['right'], int):
         item['right'] += value
     else:
         findRightValueOnLeft(item['right'], value)
 
-def findLeft(item, value, direction):
-    if isinstance(item['left'], int):
-        item['left'] += value
-    else:
-        if 'father' in item:
-            direction = 'right' if item['father']['right'] == item else 'left'
-            findLeft(item['father'], value, direction)
+def findLeft( item, value ):
+    if 'father' in item:
+        if item['father']['left'] is item:
+                findLeft(item['father'], value)
         else:
-            if direction == 'right':
-                findRightValueOnLeft( item['left'], value )
-
+            if isinstance(item['father']['left'], int):
+                item['father']['left'] += value
+            else:
+                findRightValueOnLeft(item['father']['left'], value)
 
 def findLeftValueOnRight(item, value):
-    if isinstance( item['left'], int ):
-        print("achei o mais a esquerda", item['left'], " adicionando ", value)
+    if isinstance(item['left'], int):
         item['left'] += value
     else:
         findLeftValueOnRight(item['left'], value)
 
-
-def findRight(item, value, direction):
-    if isinstance(item['right'], int):
-        item['right'] += value
-    else:
-        if 'father' in item:
-            direction = 'right' if item['father']['right'] == item else 'left'
-            findRight(item['father'], value, direction)
+def findRight(item, value):
+    if 'father' in item:
+        if item['father']['right'] is item:
+            findRight(item['father'], value)
         else:
-            if direction == 'left':
-                findLeftValueOnRight( item['right'], value )
+            if isinstance(item['father']['right'], int):
+                item['father']['right'] += value
+            else:
+                findLeftValueOnRight(item['father']['right'], value)
 
 def explodes(item):
     father = item['father']
-    if isinstance(father['left'], dict) and father['left']['nivel'] == 4:
-        findLeft ( father, father['left']['left'],  'left' )
-        findRight( father, father['left']['right'], 'left' )
+    if isinstance(father['left'], dict) and father['left']['nivel'] >= 4:
+        findLeft ( item, item['left'] )
+        findRight( item, item['right'] )
         father['left'] = 0
-        return 1
+        return True
 
-    if isinstance(father['right'], dict) and father['right']['nivel'] == 4:
-        findLeft ( father, father['right']['left'],  'right' )
-        findRight( father, father['right']['right'], 'right' )
+    if isinstance(father['right'], dict) and father['right']['nivel'] >= 4:
+        findLeft ( item, item['left'] )
+        findRight( item, item['right'] )
         father['right'] = 0
-        return 1
-    return 0
+        return True
+    return False
 
 def splits(item, direction):
     if direction == 'left':
@@ -74,33 +68,51 @@ def splits(item, direction):
         return 1
     return 0
 
-
 def findFather(item):
     if 'father' in item:
         return findFather(item['father'])
     else:
         return item
 
-def reduces(item):
-    if item['nivel'] == 4:
-        print("explodindo: ", item['left'], item['right'])
-        if explodes(item):
-            reduces(findFather(item))
+def imprime(item):
+    string = transformToList("[", item) + ']'
+    # fixes the string
+    tmp = ""
+    for idx, char in enumerate(string): 
+        if string[idx] == ',' and string[idx+1] == ']':
+            continue
+        else:
+            tmp += char
+    return tmp
 
+def explode(item):
+    if isinstance(item, dict):
+        if item['nivel'] >= 4 and explodes(item):
+            explode(findFather(item))
+        else:
+            explode(item['left'])
+            explode(item['right'])
+
+def split(item):
     if isinstance(item['left'], dict):
-        reduces(item['left'])
+        split(item['left'])
 
-    elif item['left'] >= 10:
-        if splits(item, 'left'):
-            reduces(item)
+    if isinstance(item['left'], int):
+        if item['left'] >= 10:
+            splits(item, 'left')
+            return reduces(findFather(item))
 
     if isinstance(item['right'], dict):
-        reduces(item['right'])
+        split(item['right'])
 
-    elif item['right'] >= 10:
-        if splits(item, 'right'):
-            reduces(item)
+    if isinstance(item['right'], int):
+        if item['right'] >= 10:
+            splits(item, 'right')
+            return reduces(findFather(item))
 
+def reduces(item):
+    explode(item)
+    split(item)
 
 def transformToList(res, tree):
     if isinstance(tree['left'], dict):
@@ -117,47 +129,39 @@ def transformToList(res, tree):
         res += str(tree['right'])
     return res 
 
-def testing(tree):
-    tree = { 'nivel': 0, 'left': res[0], 'right': res[1] }
-    trees(tree)
-    reduces(tree)
-    print(tree)
-    string = transformToList("[", tree) + ']'
-    # fixes the string
-    tmp = ""
-    for idx, char in enumerate(string): 
-        if string[idx] == ',' and string[idx+1] == ']':
-            continue
-        else:
-            tmp += char
-    print(tmp)
-    exit()
-
-
 f = open(sys.argv[1], 'r')
 
+def magnitude(item):
+    if isinstance(item, int):
+        return item
+    else:
+        return 3*magnitude(item['left']) + 2*magnitude(item['right'])
+
 lines = []
+all_lines = []
+
 for line in f:
     res =  json.loads(line[:-1])
-#    testing(res)
     lines.append(res)
+    all_lines.append(res)
     if len(lines) % 2 == 0:
-        print(lines[0], "outra:" ,lines[1])
         tree = { 'nivel': 0, 'left': lines[0], 'right': lines[1] }
         trees(tree)
-#        print(tree)
         reduces(tree)
-        # transforms the tree back in to a string list
-        string = transformToList("[", tree) + ']'
-        # fixes the string
-        tmp = ""
-        for idx, char in enumerate(string): 
-            if string[idx] == ',' and string[idx+1] == ']':
-                continue
-            else:
-                tmp += char
-        # makes it a list again
-        lines = [json.loads(tmp)]
+        lines = [json.loads(imprime(tree))]
 
-print(tmp)
-
+print(imprime(tree))
+print('part1: ', magnitude(tree))
+part2 = 0
+for i in range(len(all_lines)):
+    for j in range(len(all_lines)):
+        if i == j:
+            continue
+        tree = { 'nivel': 0, 'left': all_lines[i], 'right': all_lines[j] }
+        trees(tree)
+        reduces(tree)
+        tmp = magnitude(tree)
+        if tmp > part2:
+            part2 = tmp
+       
+print('part2: ', part2)
